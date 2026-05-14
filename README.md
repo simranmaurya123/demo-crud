@@ -49,7 +49,7 @@ source venv/bin/activate
 
 ### 4. Install Dependencies
 ```bash
-pip install fastapi sqlalchemy psycopg2-binary python-dotenv uvicorn
+pip install fastapi sqlalchemy psycopg2-binary python-dotenv uvicorn python-jose[cryptography] passlib[bcrypt]
 ```
 
 ### 5. Configure Environment Variables
@@ -62,9 +62,12 @@ DB_USER=your_username
 DB_PASSWORD=your_password
 DB_HOST=localhost
 DB_PORT=5432
+JWT_SECRET_KEY=your-super-secret-key-change-this-in-production
+JWT_ALGORITHM=HS256
+JWT_ACCESS_TOKEN_EXPIRE_MINUTES=30
 ```
 
-**Replace the values with your PostgreSQL credentials.**
+**Replace the values with your PostgreSQL credentials and generate a secure JWT_SECRET_KEY.**
 
 ### 6. Create Database Tables
 
@@ -96,9 +99,20 @@ The API will be available at: **http://localhost:8000**
 http://localhost:8000
 ```
 
-### 1. Create a New User
+### Authentication Endpoints
+
+#### 1. Register a New User
 ```http
-POST /users/?first_name=John&last_name=Doe&email=john@example.com&age=30
+POST /auth/register
+Content-Type: application/json
+
+{
+  "first_name": "John",
+  "last_name": "Doe",
+  "email": "john@example.com",
+  "age": 30,
+  "password": "securepassword123"
+}
 ```
 
 **Response (201):**
@@ -112,9 +126,79 @@ POST /users/?first_name=John&last_name=Doe&email=john@example.com&age=30
 }
 ```
 
-### 2. Get All Users
+#### 2. Login
+```http
+POST /auth/login
+Content-Type: application/json
+
+{
+  "email": "john@example.com",
+  "password": "securepassword123"
+}
+```
+
+**Response (200):**
+```json
+{
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "token_type": "bearer"
+}
+```
+
+#### 3. Get Current User
+```http
+GET /auth/me
+Authorization: Bearer {access_token}
+```
+
+**Response (200):**
+```json
+{
+  "user_id": 1,
+  "first_name": "John",
+  "last_name": "Doe",
+  "email": "john@example.com",
+  "age": 30
+}
+```
+
+### Protected CRUD Endpoints (Require Authentication)
+
+**All CRUD endpoints now require a valid JWT token in the Authorization header:**
+
+```
+Authorization: Bearer {access_token}
+```
+
+#### 1. Create a New User
+```http
+POST /users/
+Authorization: Bearer {access_token}
+Content-Type: application/json
+
+{
+  "first_name": "Jane",
+  "last_name": "Smith",
+  "email": "jane@example.com",
+  "age": 28
+}
+```
+
+**Response (201):**
+```json
+{
+  "user_id": 2,
+  "first_name": "Jane",
+  "last_name": "Smith",
+  "email": "jane@example.com",
+  "age": 28
+}
+```
+
+#### 2. Get All Users
 ```http
 GET /users/
+Authorization: Bearer {access_token}
 ```
 
 **Response (200):**
@@ -130,9 +214,10 @@ GET /users/
 ]
 ```
 
-### 3. Get User by ID
+#### 3. Get User by ID
 ```http
 GET /users/1
+Authorization: Bearer {access_token}
 ```
 
 **Response (200):**
@@ -146,35 +231,45 @@ GET /users/1
 }
 ```
 
-### 4. Update User
+#### 4. Update User
 ```http
-PUT /users/1?first_name=Jane&last_name=Doe&email=jane@example.com&age=28
-```
+PUT /users/1
+Authorization: Bearer {access_token}
+Content-Type: application/json
 
-**Response (200):**
-```json
 {
-  "user_id": 1,
-  "first_name": "Jane",
+  "first_name": "Jonathan",
   "last_name": "Doe",
-  "email": "jane@example.com",
-  "age": 28
+  "email": "jonathan@example.com",
+  "age": 31
 }
 ```
 
-### 5. Delete User
+**Response (200):**
+```json
+{
+  "user_id": 1,
+  "first_name": "Jonathan",
+  "last_name": "Doe",
+  "email": "jonathan@example.com",
+  "age": 31
+}
+```
+
+#### 5. Delete User
 ```http
 DELETE /users/1
+Authorization: Bearer {access_token}
 ```
 
 **Response (200):**
 ```json
 {
   "user_id": 1,
-  "first_name": "Jane",
+  "first_name": "Jonathan",
   "last_name": "Doe",
-  "email": "jane@example.com",
-  "age": 28
+  "email": "jonathan@example.com",
+  "age": 31
 }
 ```
 

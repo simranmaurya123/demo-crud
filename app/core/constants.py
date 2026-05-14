@@ -1,0 +1,19 @@
+"""Application constants"""
+
+# Error messages
+ERROR_USER_NOT_FOUND = "User not found"
+ERROR_EMAIL_ALREADY_REGISTERED = "Email already registered"
+ERROR_INVALID_CREDENTIALS = "Invalid email or password"
+ERROR_INACTIVE_USER = "Inactive user"
+ERROR_JWT_NOT_CONFIGURED = "JWT_SECRET_KEY is not configured"
+ERROR_COULD_NOT_VALIDATE = "Could not validate credentials"
+
+# HTTP Status Codes
+HTTP_200_OK = 200
+HTTP_201_CREATED = 201
+HTTP_400_BAD_REQUEST = 400
+HTTP_401_UNAUTHORIZED = 401
+HTTP_403_FORBIDDEN = 403
+HTTP_404_NOT_FOUND = 404
+HTTP_409_CONFLICT = 409
+HTTP_500_INTERNAL_SERVER_ERROR = 500
